@@ -41,46 +41,67 @@ func (c *Clients) Add(client Client) {
 	c.Data = append(c.Data, client)
 }
 
+func (c *Clients) AllToBackground() {
+	for _, cl := range c.Data {
+		cl.Status = false
+	}
+}
+
 var clients Clients
 
 func main() {
-	fmt.Println("STARTING CONTROL CENTER & SERVER!")
+	fmt.Println("STARTING CONTROL CENTER!")
+	var cmd string
 
-	var wg sync.WaitGroup
-	var sendCmds = make(chan string)
+	// REPL
+	input := bufio.NewScanner(os.Stdin)
+	fmt.Print("> ")
+	for input.Scan() {
+		cmd = input.Text()
+		fmt.Println("> " + cmd)
 
-	ln, err := net.Listen("tcp4", ":6969")
-	if err != nil {
-		log.Fatalf("Listen error: %s\n", err)
-	}
+		if cmd == "start server" {
+			// Use channel to be able to the server to stop listening.
+			fmt.Println("STARTING SERVER")
+			var wg sync.WaitGroup
+			var sendCmds = make(chan string)
 
-	go controlCenterInput(os.Stdin)
-	go controlCenterCMD(sendCmds)
+			ln, err := net.Listen("tcp4", ":6969")
+			if err != nil {
+				log.Fatalf("Listen error: %s\n", err)
+			}
 
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			log.Printf("Connection error: %s\n", err)
+			go controlCenterInput(os.Stdin)
+			go controlCenterCMD(sendCmds)
+
+			for {
+				conn, err := ln.Accept()
+				if err != nil {
+					log.Printf("Connection error: %s\n", err)
+				}
+
+				client := Client{
+					conn: conn,
+					ip: conn.RemoteAddr().String(),
+					Status: true,
+				}
+				clients.Add(client)
+				clients.AllToBackground()
+				client.Status = true
+
+				fmt.Printf("%s has connected\n", client.ip)
+
+				wg.Add(1)
+				go handleConn(client, &wg)
+
+				go func() {
+					wg.Wait()
+					// close channels here
+				}()
+			}
 		}
-
-		client := Client{
-			conn: conn,
-			ip: conn.RemoteAddr().String(),
-			Status: true,
-		}
-		clients.Add(client)
-
-		fmt.Printf("%s has connected\n", client.ip)
-
-		wg.Add(1)
-		go handleConn(client, &wg)
-
-		go func() {
-			wg.Wait()
-			// close channels here
-		}()
+		fmt.Print("> ")
 	}
-
 }
 
 func controlCenterInput(in io.Reader) {
