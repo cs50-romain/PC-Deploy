@@ -1,0 +1,6 @@
+github.com/cs50-romain/tourdego v0.0.1 h1:jdNfcRK9a1B+DZUX8K9Bww+I4wXSVLtKMqkF54vKRUE=
+github.com/cs50-romain/tourdego v0.0.1/go.mod h1:GyURuXKTTn2wE7yPwlB+NaDATZwM2dktrUd2LFj076Q=
+golang.org/x/sys v0.20.0 h1:Od9JTbYCk261bKm4M/mw7AklTlFYIa0bIp9BgSm1S8Y=
+golang.org/x/sys v0.20.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
+golang.org/x/term v0.20.0 h1:VnkxpohqXaOBYJtBmEppKUG6mXpi+4O6purfc2+sMhw=
+golang.org/x/term v0.20.0/go.mod h1:8UkIAJTvZgivsXaD6/pH6U9ecQzZ45awqEOzuCvwpFY=
