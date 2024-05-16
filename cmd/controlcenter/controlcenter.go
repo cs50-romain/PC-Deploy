@@ -13,14 +13,16 @@ import (
 
 	tourdego "github.com/cs50-romain/tourdego/pkg"
 	"github.com/cs50-romain/tourdego/pkg/color"
+	table "github.com/jedib0t/go-pretty/v6/table"
 )
+
+var clients []Client
 
 type ControlCenter struct {
 	Commands map[string]func()
 }
 
 func (c *ControlCenter) Start() error {
-	var clients []Client
 	// Add commands and start the shell
 	sh := tourdego.NewShell("PCDeploy" + color.White + "> ")
 	sh.SetPromptColor(color.Cyan)
@@ -28,9 +30,7 @@ func (c *ControlCenter) Start() error {
 		Name: "show",
 		Help: "list things, usually whatever comes after list: list clients",
 		Handler: func (s ...string) error {
-			fmt.Println("Listing options")
 			ShowHandler(s)
-			fmt.Println(clients)
 			return nil
 		},
 	})
@@ -58,7 +58,24 @@ func (c *ControlCenter) Start() error {
 	return nil
 }
 
-func ShowHandler(opt []string) {
+func ShowHandler(opts []string) {
+	for _, opt := range opts {
+		if opt != "clients" {
+			fmt.Println("Invalid optional argument. Please use clients or packcages.")
+			return
+		}
+	}
+	// Show clients in a table of this format:
+	// ID | Client Name | MORE LATER
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"#", "Client Name"})
+	for idx, client := range clients {
+		t.AppendSeparator()
+		t.AppendRow([]interface{}{idx, client.Name})
+	}
+	t.SetStyle(table.StyleBold)
+	t.Render()
 }
 
 // create client:
@@ -136,6 +153,5 @@ func CreateHandler(options []string) (*Client, error){
 			fmt.Println("Cannot create for this option. Please create a client or package.")
 		}
 	}
-
 	return nil, nil
 }
