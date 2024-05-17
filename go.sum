@@ -1,5 +1,5 @@
-github.com/cs50-romain/tourdego v0.0.1 h1:jdNfcRK9a1B+DZUX8K9Bww+I4wXSVLtKMqkF54vKRUE=
-github.com/cs50-romain/tourdego v0.0.1/go.mod h1:GyURuXKTTn2wE7yPwlB+NaDATZwM2dktrUd2LFj076Q=
+github.com/cs50-romain/tourdego v0.0.11 h1:GCHTRRZkWC0aGFhFprV/iEFAwIl9lwsIoSHaklunAtU=
+github.com/cs50-romain/tourdego v0.0.11/go.mod h1:GyURuXKTTn2wE7yPwlB+NaDATZwM2dktrUd2LFj076Q=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/jedib0t/go-pretty/v6 v6.5.9 h1:ACteMBRrrmm1gMsXe9PSTOClQ63IXDUt03H5U+UV8OU=
 github.com/jedib0t/go-pretty/v6 v6.5.9/go.mod h1:zbn98qrYlh95FIhwwsbIip0LYpwSG8SUOScs+v9/t0E=

@@ -3,7 +3,7 @@ module cs50-romain/pcdeploy
 go 1.20
 
 require (
-	github.com/cs50-romain/tourdego v0.0.1
+	github.com/cs50-romain/tourdego v0.0.11
 	github.com/jedib0t/go-pretty/v6 v6.5.9
 )
 
