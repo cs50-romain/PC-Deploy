@@ -16,7 +16,7 @@ import (
 	table "github.com/jedib0t/go-pretty/v6/table"
 )
 
-var clients []Client
+var clients = make(map[string]Client)
 
 type ControlCenter struct {
 	Commands map[string]func()
@@ -24,7 +24,8 @@ type ControlCenter struct {
 
 func (c *ControlCenter) Start() error {
 	// Add commands and start the shell
-	sh := tourdego.NewShell("PCDeploy" + color.White + "> ")
+	prompt := "PCDeploy"
+	sh := tourdego.NewShell(prompt + color.White + "> ")
 	sh.SetPromptColor(color.Cyan)
 	sh.AddCommand("show", &tourdego.Cmd{
 		Name: "show",
@@ -42,12 +43,34 @@ func (c *ControlCenter) Start() error {
 			// Read user input to find out what to create.
 			client, err := CreateHandler(s)
 			if err != nil {
+				fmt.Println(err)
 				return err
 			}
-			clients = append(clients, *client)
+			clients[client.Name] = *client
 			return nil
 		},
 	})
+	
+	sh.AddCommand("use", &tourdego.Cmd{
+		Name: "use",
+		Help: "Make a selection to do further work with that selection. - select <client #>",
+		Handler: func (s ...string) error {
+			clientName, err := SelectHandler(s)
+			if err != nil {
+				fmt.Println(err)
+				return nil
+			}
+			sh.SetPrompt(color.Cyan + prompt + color.White + "\\" + color.Yellow + clientName + color.White + "> ")
+			return nil
+		},
+	})
+
+	// Init client array
+	cls, err := InitClients()
+	if err != nil {
+		return err
+	}
+	clients = cls
 
 	//sh.RawMode = true // Couple things need fixed before being able to use raw mode
 
@@ -58,10 +81,29 @@ func (c *ControlCenter) Start() error {
 	return nil
 }
 
+// RETURN VALUES NEED CHANGED... I THINK
+func SelectHandler(opts []string) (string, error) {
+	if len(opts) == 0 {
+		return "", fmt.Errorf(color.Bold + color.Red + "Not enough options given" + color.Reset)
+	}
+	
+	if len(opts) > 1 {
+		return "", fmt.Errorf(color.Bold + color.Red + "Too many options given" + color.Reset)
+	}
+	
+	clientName := opts[0]
+	if _, ok := clients[clientName]; !ok {
+		return "", fmt.Errorf(color.Bold + color.Red + "Client does not exist. Use `show clients`to view available clients" + color.Reset)
+	}
+
+	fmt.Printf("%s%sYOU ARE NOW USING %s's WORKSPACE%s\n", color.Bold, color.Magenta, clientName, color.Reset)
+	return clientName, nil
+}
+
 func ShowHandler(opts []string) {
 	for _, opt := range opts {
 		if opt != "clients" {
-			fmt.Println("Invalid optional argument. Please use clients or packcages.")
+			fmt.Println(color.Bold + color.Red + "Invalid optional argument. Please use clients or packcages." + color.Reset)
 			return
 		}
 	}
@@ -85,16 +127,18 @@ func ShowHandler(opts []string) {
 func CreateHandler(options []string) (*Client, error){
 	if len(options) == 0 {
 		fmt.Println("Please enter an option for this command; client or package?")
-		return nil, nil
+		return nil, fmt.Errorf("Invalid option")
 	}
 
 	for _, opt := range options {
 		switch opt {
 		case "client":
+			// REFACTOR?
 			// Ask questions and handle user input & create new client
 			reader := bufio.NewReader(os.Stdin)
 			fmt.Print("   Name of client: ")
 			clientName, err := reader.ReadString('\n')
+			clientName = strings.Trim(clientName, "\n")
 			if err != nil {
 				fmt.Println(err)
 				return nil, err
@@ -102,6 +146,7 @@ func CreateHandler(options []string) (*Client, error){
 
 			fmt.Print("   Name of locations (main, second, third...): ")
 			locations, err := reader.ReadString('\n')
+			locations = strings.Trim(locations, "\n")
 			if err != nil {
 				fmt.Println(err)
 				return nil, err
@@ -109,6 +154,7 @@ func CreateHandler(options []string) (*Client, error){
 
 			fmt.Print("   Enter power options (format: _, _, _, _): ")
 			powerOptions, err := reader.ReadString('\n')
+			powerOptions = strings.Trim(powerOptions, "\n")
 			if err != nil {
 				fmt.Println(err)
 				return nil, err
@@ -116,6 +162,7 @@ func CreateHandler(options []string) (*Client, error){
 
 			fmt.Print("   Enter domain name: ")
 			domainName, err := reader.ReadString('\n')
+			domainName = strings.Trim(domainName, "\n")
 			if err != nil {
 				fmt.Println(err)
 				return nil, err
@@ -123,14 +170,15 @@ func CreateHandler(options []string) (*Client, error){
 
 			fmt.Print("   Enter default PC name: ")
 			pcname, err := reader.ReadString('\n')
+			pcname = strings.Trim(pcname, "\n")
 			if err != nil {
 				fmt.Println(err)
 				return nil, err
 			}
 
-			// SHow how the client was created, with which config
+			// Show how the client was created, with which config
 			fmt.Println("   You have created a new client with the following configs:")
-			fmt.Printf("   Name: %s Locations: %s Power Options: %s Domain Name: %s Default PC Name: %s", clientName, locations, powerOptions, domainName, pcname)
+			fmt.Printf("   Name: %s Locations: %s Power Options: %s Domain Name: %s Default PC Name: %s\n", clientName, locations, powerOptions, domainName, pcname)
 
 			config := CreateConfig(powerOptions, pcname, domainName)
 			client := CreateClient(clientName, locations, config)
