@@ -84,26 +84,26 @@ func (c *ControlCenter) Start() error {
 // RETURN VALUES NEED CHANGED... I THINK
 func SelectHandler(opts []string) (string, error) {
 	if len(opts) == 0 {
-		return "", fmt.Errorf(color.Bold + color.Red + "Not enough options given" + color.Reset)
+		return "", fmt.Errorf(color.Bold + color.Red + "\tNot enough options given" + color.Reset)
 	}
 	
 	if len(opts) > 1 {
-		return "", fmt.Errorf(color.Bold + color.Red + "Too many options given" + color.Reset)
+		return "", fmt.Errorf(color.Bold + color.Red + "\tToo many options given" + color.Reset)
 	}
 	
 	clientName := opts[0]
 	if _, ok := clients[clientName]; !ok {
-		return "", fmt.Errorf(color.Bold + color.Red + "Client does not exist. Use `show clients`to view available clients" + color.Reset)
+		return "", fmt.Errorf(color.Bold + color.Red + "\tClient does not exist. Use `show clients`to view available clients" + color.Reset)
 	}
 
-	fmt.Printf("%s%sYOU ARE NOW USING %s's WORKSPACE%s\n", color.Bold, color.Magenta, clientName, color.Reset)
+	fmt.Printf("\t%s%sYOU ARE NOW USING %s's WORKSPACE%s\n", color.Bold, color.Magenta, clientName, color.Reset)
 	return clientName, nil
 }
 
 func ShowHandler(opts []string) {
 	for _, opt := range opts {
 		if opt != "clients" {
-			fmt.Println(color.Bold + color.Red + "Invalid optional argument. Please use clients or packcages." + color.Reset)
+			fmt.Println(color.Bold + color.Red + "\tInvalid optional argument. Please use clients or packcages." + color.Reset)
 			return
 		}
 	}
@@ -126,7 +126,7 @@ func ShowHandler(opts []string) {
 // NEED TO FIND A WAY TO ACCEPT USER INPUT WHILE IN RAW MODE OF SHELL
 func CreateHandler(options []string) (*Client, error){
 	if len(options) == 0 {
-		fmt.Println("Please enter an option for this command; client or package?")
+		fmt.Println("\tPlease enter an option for this command; client or package?")
 		return nil, fmt.Errorf("Invalid option")
 	}
 
@@ -136,7 +136,7 @@ func CreateHandler(options []string) (*Client, error){
 			// REFACTOR?
 			// Ask questions and handle user input & create new client
 			reader := bufio.NewReader(os.Stdin)
-			fmt.Print("   Name of client: ")
+			fmt.Print("\tName of client: ")
 			clientName, err := reader.ReadString('\n')
 			clientName = strings.Trim(clientName, "\n")
 			if err != nil {
@@ -144,7 +144,7 @@ func CreateHandler(options []string) (*Client, error){
 				return nil, err
 			}
 
-			fmt.Print("   Name of locations (main, second, third...): ")
+			fmt.Print("\tName of locations (main, second, third...): ")
 			locations, err := reader.ReadString('\n')
 			locations = strings.Trim(locations, "\n")
 			if err != nil {
@@ -152,7 +152,7 @@ func CreateHandler(options []string) (*Client, error){
 				return nil, err
 			}
 
-			fmt.Print("   Enter power options (format: _, _, _, _): ")
+			fmt.Print("\tEnter power options (format: _, _, _, _): ")
 			powerOptions, err := reader.ReadString('\n')
 			powerOptions = strings.Trim(powerOptions, "\n")
 			if err != nil {
@@ -160,7 +160,7 @@ func CreateHandler(options []string) (*Client, error){
 				return nil, err
 			}
 
-			fmt.Print("   Enter domain name: ")
+			fmt.Print("\tEnter domain name: ")
 			domainName, err := reader.ReadString('\n')
 			domainName = strings.Trim(domainName, "\n")
 			if err != nil {
@@ -168,7 +168,7 @@ func CreateHandler(options []string) (*Client, error){
 				return nil, err
 			}
 
-			fmt.Print("   Enter default PC name: ")
+			fmt.Print("\tEnter default PC name: ")
 			pcname, err := reader.ReadString('\n')
 			pcname = strings.Trim(pcname, "\n")
 			if err != nil {
@@ -177,8 +177,8 @@ func CreateHandler(options []string) (*Client, error){
 			}
 
 			// Show how the client was created, with which config
-			fmt.Println("   You have created a new client with the following configs:")
-			fmt.Printf("   Name: %s Locations: %s Power Options: %s Domain Name: %s Default PC Name: %s\n", clientName, locations, powerOptions, domainName, pcname)
+			fmt.Println("\tYou have created a new client with the following configs:")
+			fmt.Printf("\tName: %s Locations: %s Power Options: %s Domain Name: %s Default PC Name: %s\n", clientName, locations, powerOptions, domainName, pcname)
 
 			config := CreateConfig(powerOptions, pcname, domainName)
 			client := CreateClient(clientName, locations, config)
@@ -195,7 +195,7 @@ func CreateHandler(options []string) (*Client, error){
 			client.SaveFile(file)
 			return client, nil
 		case "package":
-			fmt.Println("   Creating package")
+			fmt.Println("\tCreating package")
 			return nil, nil
 		default:
 			fmt.Println("Cannot create for this option. Please create a client or package.")
