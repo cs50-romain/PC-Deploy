@@ -42,7 +42,9 @@ func (c *ControlCenter) Start() error {
 				fmt.Println(err)
 				return err
 			}
-			clients[client.Name] = *client
+			if client != nil {
+				clients[client.Name] = *client
+			}
 			return nil
 		},
 	})
