@@ -1,15 +1,16 @@
 package controlcenter
 
-import "encoding/xml"
+import (
+	"fmt"
+	"os"
+	"text/template"
+)
 
-//"encoding/xml"
-
-// CREATE FUNCTION NAMES AND STRUCTS BEFORE ANYTHING
 type Package struct {
 	ComputerName	string
-	timeZone	string
-	localAdmin	string
-	localLolz	string
+	TimeZone	string
+	LocalAdmin	string
+	LocalLolz	string
 	Wifi		bool
 	sSID		string
 	sSIDLolz	string
@@ -18,13 +19,14 @@ type Package struct {
 func NewPackage(computerName, timeZone string) *Package {
 	return &Package{
 		ComputerName: computerName,
-		timeZone: timeZone,
+		TimeZone: timeZone,
+		Wifi: false,
 	}
 }
 
 func (p *Package) SetLocalAdmin(username, lolz string) {
-	p.localAdmin = username
-	p.localLolz = lolz
+	p.LocalAdmin = username
+	p.LocalLolz = lolz
 }
 
 func (p *Package) SetWifi(ssid, lolz string) {
@@ -32,10 +34,29 @@ func (p *Package) SetWifi(ssid, lolz string) {
 	p.sSIDLolz = lolz
 }
 
-func (p *Package) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	return nil
+func (p *Package) WriteXML(buf []byte) error {
+	file, err := os.OpenFile("/home/lettuce/go/PCDeploy/storage/clients/Autounattend.xml", os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	t := template.Must(template.New("Autounattend.xml").Parse(string(buf)))	
+	return t.Execute(file, p)
 }
 
-func (p *Package) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	return nil
+func (p *Package) ReadFile() ([]byte, error) {
+	buf := make([]byte, 1000000000)
+	file, err := os.Open("/home/lettuce/go/PCDeploy/deployment/Autounattend.xml")
+	defer file.Close()
+	if err != nil {
+		return nil, err
+	}
+	
+	readBits, err := file.Read(buf)
+	if err != nil {
+		fmt.Printf("Bits read: %d", readBits)
+		return nil, err
+	}
+
+	return buf, nil
 }
