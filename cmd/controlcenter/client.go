@@ -2,7 +2,6 @@ package controlcenter
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -45,15 +44,12 @@ func CreateConfig(powerOpt, pcname, domainname string) *ClientConfig {
 }
 
 func (c *Client) SaveFile(w io.Writer) error {
-	//path := "/home/lettuce/go/PCDeploy/storage/clients/"
 	fileContents, err := json.Marshal(c)
 	if err != nil {
 		return err
 	}
 
 	_, err = w.Write(fileContents)
-	//encoder := json.NewEncoder(w)
-	//err = encoder.Encode(fileContents)
 	if err != nil {
 		return err
 	}
@@ -62,9 +58,7 @@ func (c *Client) SaveFile(w io.Writer) error {
 }
 
 func getClientFromFile(filename string) (*Client, error) {
-	// Open file
 	filepath := "/home/lettuce/go/PCDeploy/storage/clients/" + filename
-	fmt.Println(filename, filepath)
 	byt, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, err
@@ -81,7 +75,6 @@ func getClientFromFile(filename string) (*Client, error) {
 func InitClients() (map[string]Client, error) {
 	var cls = make(map[string]Client)
 
-	// Read directory where all clients.json 
 	dirs, err := os.ReadDir("/home/lettuce/go/PCDeploy/storage/clients/")
 	if err != nil {
 		return nil, err
@@ -90,7 +83,6 @@ func InitClients() (map[string]Client, error) {
 	for _, dir := range dirs {
 		client, err := getClientFromFile(dir.Name())
 		if err != nil {
-			fmt.Println(err)
 			continue
 		}
 		cls[client.Name] = *client
