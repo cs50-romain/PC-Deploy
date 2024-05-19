@@ -10,8 +10,6 @@ import (
 	table "github.com/jedib0t/go-pretty/v6/table"
 )
 
-// I could actally create a client workspace. It would be a new shell, with new acceptable commands...// 
-// Backing out of that would return us back to the initial shell
 func SelectHandler(opts []string) (string, error) {
 	if len(opts) == 0 {
 		return "", fmt.Errorf(color.Bold + color.Red + "\tNot enough options given" + color.Reset)
@@ -54,7 +52,6 @@ func ShowHandler(opts []string) {
 
 // create client:
 // When creating a client, we need to create a default config json file.
-// User will need to answer questions.
 // NEED TO FIND A WAY TO ACCEPT USER INPUT WHILE IN RAW MODE OF SHELL
 func CreateHandler(options []string) (*Client, error){
 	if len(options) == 0 {
@@ -65,8 +62,6 @@ func CreateHandler(options []string) (*Client, error){
 	for _, opt := range options {
 		switch opt {
 		case "client":
-			// REFACTOR?
-			// Ask questions and handle user input & create new client
 			reader := bufio.NewReader(os.Stdin)
 			fmt.Print("\tName of client: ")
 			clientName, err := reader.ReadString('\n')
@@ -108,16 +103,12 @@ func CreateHandler(options []string) (*Client, error){
 				return nil, err
 			}
 
-			// Show how the client was created, with which config
 			fmt.Println("\tYou have created a new client with the following configs:")
 			fmt.Printf("\tName: %s Locations: %s Power Options: %s Domain Name: %s Default PC Name: %s\n", clientName, locations, powerOptions, domainName, pcname)
 
 			config := CreateConfig(powerOptions, pcname, domainName)
 			client := CreateClient(clientName, locations, config)
 
-			// Add client to array
-
-			// Save client to json file
 			filepath := "/home/lettuce/go/PCDeploy/storage/clients/" + strings.Trim(client.Name, "\n") + ".json"
 			file, err := os.OpenFile(filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 			if err != nil {
@@ -127,17 +118,47 @@ func CreateHandler(options []string) (*Client, error){
 			client.SaveFile(file)
 			return client, nil
 		case "package":
+			// Will need to find out which client's workspace we are currently in.
+			// So need to create workspaces.
+			// For now default to Nomes
+
+			// ADD USER INPUTS/QUESTIONS to create new package
+			// MOST SHOULD BE OPTIONAL.
+
+			// Display a progress bar here
 			fmt.Println("\tCreating package")
-			return nil, nil
+
+			// Handle this goroutine better
+			go func() (*Client, error) {
+				err := createPackage()
+			
+				if err != nil {
+					return nil, err
+				}
+				return nil, nil
+			}()
+			return nil, nil 
 		default:
-			createPackage()
 		}
 	}
 	return nil, nil
 }
 
-func createPackage() {
+func createPackage() error {
+	p := NewPackage("NOMES-2024", "Eastern Standard Time")
+	p.SetLocalAdmin("MyAdmin", "IAmAdminHereBitches")
+	buf, err := p.ReadFile()
+	if err != nil {
+		fmt.Println("Here is my error")
+		return err
+	}
 	
+	err = p.WriteXML(buf)
+	if err != nil {
+		fmt.Println("WriteXML error:")
+		return err
+	}
+	return nil
 }
 
 func backHandler(opts []string) error {
