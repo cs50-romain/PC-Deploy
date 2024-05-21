@@ -16,6 +16,7 @@ var clients = make(map[string]Client)
 
 type ControlCenter struct {
 	Commands map[string]func()
+	Workspace	bool
 }
 
 func (c *ControlCenter) Start() error {
@@ -27,6 +28,10 @@ func (c *ControlCenter) Start() error {
 		Name: "show",
 		Help: "list things, usually whatever comes after list: list clients",
 		Handler: func (s ...string) error {
+			if c.InWorkspace() {
+				// Check client commands and its handler
+				return nil
+			}
 			ShowHandler(s)
 			return nil
 		},
@@ -36,6 +41,10 @@ func (c *ControlCenter) Start() error {
 		Name: "create",
 		Help: "create <option>; Create a client or package then answer questions.",
 		Handler: func (s ...string) error {
+			if c.InWorkspace() {
+				// Check client commands and its handler
+				return nil
+			}
 			// Read user input to find out what to create.
 			client, err := CreateHandler(s)
 			if err != nil {
@@ -53,7 +62,12 @@ func (c *ControlCenter) Start() error {
 		Name: "use",
 		Help: "Make a selection to do further work with that selection. - select <client #>",
 		Handler: func (s ...string) error {
-			clientName, err := SelectHandler(s)
+			if c.InWorkspace() {
+				// Check client commands and its handler
+				return nil
+			}
+
+			clientName, err := c.SelectHandler(s)
 			if err != nil {
 				fmt.Println(err)
 				return nil
@@ -67,12 +81,17 @@ func (c *ControlCenter) Start() error {
 		Name: "back",
 		Help: "back; Back out of current selection",
 		Handler: func (s ...string) error {
-			err := backHandler(s)
+			if c.InWorkspace() {
+				// Check client commands and its handler
+				return nil
+			}
+			err := c.backHandler(s)
 			if err != nil {
 				fmt.Println(err)
 				return nil
 			}
-	sh.SetPromptColor(color.Cyan)
+
+			sh.SetPromptColor(color.Cyan)
 			sh.SetPrompt(prompt + color.White + "> " + color.Reset)
 			sh.SetPromptColor(color.Cyan)
 			return nil
@@ -93,4 +112,8 @@ func (c *ControlCenter) Start() error {
 	}
 
 	return nil
+}
+
+func (c *ControlCenter) InWorkspace() bool {
+	return c.Workspace
 }
