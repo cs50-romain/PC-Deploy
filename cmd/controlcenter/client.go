@@ -73,8 +73,8 @@ func getClientFromFile(filename string) (*Client, error) {
 	return &client, nil
 }
 
-func InitClients() (map[string]Client, error) {
-	var cls = make(map[string]Client)
+func InitClients() (map[string]*Client, error) {
+	var cls = make(map[string]*Client)
 
 	dirs, err := os.ReadDir("/home/lettuce/go/PCDeploy/storage/clients/")
 	if err != nil {
@@ -86,7 +86,7 @@ func InitClients() (map[string]Client, error) {
 		if err != nil {
 			continue
 		}
-		cls[client.Name] = *client
+		cls[client.Name] = client
 	}
 	return cls, nil
 }

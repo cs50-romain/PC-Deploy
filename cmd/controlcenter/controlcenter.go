@@ -12,11 +12,13 @@ import (
 	"github.com/cs50-romain/tourdego/pkg/color"
 )
 
-var clients = make(map[string]Client)
+var clients = make(map[string]*Client)
 
 type ControlCenter struct {
 	Commands map[string]func()
 	Workspace	bool
+	clients		map[string]*Client
+	currentClient	string
 }
 
 func (c *ControlCenter) Start() error {
@@ -43,6 +45,8 @@ func (c *ControlCenter) Start() error {
 		Handler: func (s ...string) error {
 			if c.InWorkspace() {
 				// Check client commands and its handler
+				fmt.Println(c.clients[c.currentClient])
+				c.clients[c.currentClient].Workspace.HandleCommands("create", s...)
 				return nil
 			}
 			// Read user input to find out what to create.
@@ -52,7 +56,7 @@ func (c *ControlCenter) Start() error {
 				return err
 			}
 			if client != nil {
-				clients[client.Name] = *client
+				clients[client.Name] = client
 			}
 			return nil
 		},
@@ -72,6 +76,10 @@ func (c *ControlCenter) Start() error {
 				fmt.Println(err)
 				return nil
 			}
+
+			c.currentClient = clientName
+			workspace := InitWorkspace(c.currentClient)
+			c.clients[c.currentClient].Workspace = workspace
 			sh.SetPrompt(color.Cyan + prompt + color.White + "\\" + color.Yellow + clientName + color.White + "> ")
 			return nil
 		},
@@ -104,6 +112,7 @@ func (c *ControlCenter) Start() error {
 		return err
 	}
 	clients = cls
+	c.clients = cls
 
 	//sh.RawMode = true // Couple things need fixed before being able to use raw mode
 

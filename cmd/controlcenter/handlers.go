@@ -10,7 +10,7 @@ import (
 	table "github.com/jedib0t/go-pretty/v6/table"
 )
 
-func SelectHandler(opts []string) (string, error) {
+func (c *ControlCenter) SelectHandler(opts []string) (string, error) {
 	if len(opts) == 0 {
 		return "", fmt.Errorf(color.Bold + color.Red + "\tNot enough options given" + color.Reset)
 	}
@@ -23,6 +23,12 @@ func SelectHandler(opts []string) (string, error) {
 	if _, ok := clients[clientName]; !ok {
 		return "", fmt.Errorf(color.Bold + color.Red + "\tClient does not exist. Use `show clients`to view available clients" + color.Reset)
 	}
+
+	client := clients[clientName]
+
+	workspace := InitWorkspace(clientName)
+	client.Workspace = workspace
+	c.Workspace = true
 
 	fmt.Printf("\t%s%sYOU ARE NOW USING %s's WORKSPACE%s\n", color.Bold, color.Magenta, clientName, color.Reset)
 	return clientName, nil
@@ -161,6 +167,7 @@ func createPackage() error {
 	return nil
 }
 
-func backHandler(opts []string) error {
+func (c *ControlCenter) backHandler(opts []string) error {
+	c.Workspace = false
 	return nil
 }
