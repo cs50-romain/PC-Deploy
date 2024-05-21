@@ -12,6 +12,7 @@ type Client struct {
 	Locations	[]string `json:"Locations"`
 	Automate	bool `json:"Automate"`
 	ConfigFile	ClientConfig
+	Workspace	*Workspace
 }
 
 type ClientConfig struct {
