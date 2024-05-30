@@ -6,6 +6,7 @@ This is the whole control flow of the program
 package controlcenter
 
 import (
+	"cs50-romain/pcdeploy/cmd/server"
 	"fmt"
 
 	tourdego "github.com/cs50-romain/tourdego/pkg"
@@ -35,6 +36,19 @@ func (c *ControlCenter) Start() error {
 				return nil
 			}
 			ShowHandler(s)
+			return nil
+		},
+	})
+
+	sh.AddCommand("server", &tourdego.Cmd{
+		Name: "server",
+		Help: "Start the server",
+		Handler: func (s ...string) error {
+			ser := server.NewServer("192.168.5.202", 6969)
+			err := ser.Run()
+			if err != nil {
+				fmt.Println(err)
+			}
 			return nil
 		},
 	})
