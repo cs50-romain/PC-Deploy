@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+
+	"cs50-romain/pcdeploy/cmd/client"
 )
 
 type Server struct {
@@ -15,17 +17,15 @@ type Server struct {
 	port int
 }
 
-type ClientComputer struct {
-	connection net.Conn
-	addr string
-	logs []string
-}
-
 func NewServer(addr string, port int) *Server {
 	return &Server{
 		addr: addr,
 		port: port,
 	}
+}
+
+func Broadcaster() {
+	
 }
 
 func (s *Server) Run() error {
@@ -50,13 +50,12 @@ func handleConn(conn net.Conn) {
 	// Receive updates from client
 	// if the client is in the foreground position, output to shell and log
 	// if client is in background position, log/save.
-	client := &ClientComputer{
-		connection: conn,
-		addr: conn.RemoteAddr().String(),
-		logs: []string{},
-	}
-	input := bufio.NewScanner(client.connection)
+	client := client.NewClientComputer(conn, conn.RemoteAddr().String())
+	fmt.Println("A client has successfully connected: ", client.Ip)
+	input := bufio.NewScanner(client.Conn)
 	for input.Scan() {
-		fmt.Println(client.addr + ": " + input.Text())
+		message := input.Text()
+		fmt.Println(client.Ip + ": " + message)
+		client.SaveLogs(message)
 	}
 }
