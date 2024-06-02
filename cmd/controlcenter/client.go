@@ -1,6 +1,7 @@
 package controlcenter
 
 import (
+	"cs50-romain/pcdeploy/cmd/controlcenter/workspace"
 	"encoding/json"
 	"io"
 	"os"
@@ -12,7 +13,7 @@ type Client struct {
 	Locations	[]string `json:"Locations"`
 	Automate	bool `json:"Automate"`
 	ConfigFile	ClientConfig
-	Workspace	*Workspace
+	Workspace	*workspace.Workspace
 }
 
 type ClientConfig struct {
