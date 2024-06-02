@@ -7,31 +7,47 @@ import (
 	"strings"
 
 	"github.com/cs50-romain/tourdego/pkg/color"
+	"cs50-romain/pcdeploy/cmd/controlcenter/workspace"
 	table "github.com/jedib0t/go-pretty/v6/table"
 )
 
 func (c *ControlCenter) SelectHandler(opts []string) (string, error) {
-	if len(opts) == 0 {
+	if len(opts) <= 1 {
 		return "", fmt.Errorf(color.Bold + color.Red + "\tNot enough options given" + color.Reset)
 	}
 	
-	if len(opts) > 1 {
+	if len(opts) > 2 {
 		return "", fmt.Errorf(color.Bold + color.Red + "\tToo many options given" + color.Reset)
 	}
 	
-	clientName := opts[0]
-	if _, ok := clients[clientName]; !ok {
-		return "", fmt.Errorf(color.Bold + color.Red + "\tClient does not exist. Use `show clients`to view available clients" + color.Reset)
+	// Is it a client or is it a connections
+	option := opts[0]
+	if option == "client" {
+		inputClient := opts[1]
+		if _, ok := clients[inputClient]; !ok {
+			return "", fmt.Errorf(color.Bold + color.Red + "\tClient does not exist. Use `show clients`to view available clients" + color.Reset)
+		}
+		client := clients[inputClient]
+
+		workspace := workspace.InitWorkspace(inputClient)
+		client.Workspace = workspace
+		c.Workspace = true
+
+		fmt.Printf("\t%s%sYOU ARE NOW USING %s's WORKSPACE%s\n", color.Bold, color.Magenta, inputClient, color.Reset)
+		return inputClient, nil
 	}
 
-	client := clients[clientName]
+	if option == "conn" {
+		if _, ok := clientComputers.Ips[option]; !ok {
+			return "", fmt.Errorf(color.Bold + color.Red + "\tClient does not exist. Use `show clients`to view available clients" + color.Reset)
+		}
+		conn := clientComputers.Ips[opts[1]]
 
-	workspace := InitWorkspace(clientName)
-	client.Workspace = workspace
-	c.Workspace = true
-
-	fmt.Printf("\t%s%sYOU ARE NOW USING %s's WORKSPACE%s\n", color.Bold, color.Magenta, clientName, color.Reset)
-	return clientName, nil
+		workspace := workspace.InitWorkspace(opts[1])
+		conn.Workspace = workspace
+		c.Workspace = true
+	}
+	return "", nil
 }
 
 func ShowHandler(opts []string) {
