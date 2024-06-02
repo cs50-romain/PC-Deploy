@@ -6,6 +6,8 @@ This is the whole control flow of the program
 package controlcenter
 
 import (
+	"cs50-romain/pcdeploy/cmd/client"
+	"cs50-romain/pcdeploy/cmd/controlcenter/workspace"
 	"cs50-romain/pcdeploy/cmd/server"
 	"fmt"
 
@@ -14,6 +16,7 @@ import (
 )
 
 var clients = make(map[string]*Client)
+var clientComputers = client.ClientComputers{}
 
 type ControlCenter struct {
 	Commands map[string]func()
@@ -45,13 +48,18 @@ func (c *ControlCenter) Start() error {
 		Help: "Start the server",
 		Handler: func (s ...string) error {
 			ser := server.NewServer("192.168.5.202", 6969)
-			err := ser.Run()
-			if err != nil {
-				fmt.Println(err)
-			}
+			go func() {
+				err := ser.Run()
+				if err != nil {
+					fmt.Println(err)
+				}
+			}()
+
 			return nil
 		},
 	})
+
+	// Stop command - stop server, stop conn
 
 	sh.AddCommand("create", &tourdego.Cmd{
 		Name: "create",
@@ -92,7 +100,7 @@ func (c *ControlCenter) Start() error {
 			}
 
 			c.currentClient = clientName
-			workspace := InitWorkspace(c.currentClient)
+			workspace := workspace.InitWorkspace(c.currentClient)
 			c.clients[c.currentClient].Workspace = workspace
 			sh.SetPrompt(color.Cyan + prompt + color.White + "\\" + color.Yellow + clientName + color.White + "> ")
 			return nil
