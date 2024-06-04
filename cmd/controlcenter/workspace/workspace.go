@@ -1,22 +1,16 @@
 package workspace 
 
-import "fmt"
-
 type Workspace struct {
 	Prompt			string
 	availableCommands	map[string]func(...string) // Maybe not needed if there is a personal shell
 }
 
-// Should be initiated only when we are using a client
+// Should be initiated only when we are using a workspace
 func InitWorkspace(clientName string) *Workspace {
 	// Init available commands and its options.
 	workspace := &Workspace{
 		availableCommands: make(map[string]func(s ...string)),	
 	}
-	
-	workspace.AddCommand("create", func(s ...string) {
-		fmt.Println("Creating package")
-	})
 
 	return workspace
 }
