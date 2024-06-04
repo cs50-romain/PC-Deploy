@@ -11,6 +11,7 @@ import (
 	table "github.com/jedib0t/go-pretty/v6/table"
 )
 
+// THIS DOES A LOT.... maybe break it down
 func (c *ControlCenter) SelectHandler(opts []string) (string, *workspace.Workspace, error) {
 	if len(opts) <= 1 {
 		return "", nil, fmt.Errorf(color.Bold + color.Red + "\tNot enough options given" + color.Reset)
@@ -20,8 +21,7 @@ func (c *ControlCenter) SelectHandler(opts []string) (string, *workspace.Workspa
 		return "", nil, fmt.Errorf(color.Bold + color.Red + "\tToo many options given" + color.Reset)
 	}
 	
-	// Is it a client or is it a connections
-	// Setup workspace either way
+	// Setup workspace
 	option := opts[0]
 	chosenWorkspace := opts[1]
 	var returnedWorkspace *workspace.Workspace
@@ -35,43 +35,76 @@ func (c *ControlCenter) SelectHandler(opts []string) (string, *workspace.Workspa
 		client.Workspace = returnedWorkspace
 		c.Workspace = true
 
+		// Add commands related to client workspace
+		client.Workspace.AddCommand("create", func(s ...string) {
+			fmt.Println("Creating")
+		})
+
 		fmt.Printf("\t%s%sYOU ARE NOW USING %s's WORKSPACE%s\n", color.Bold, color.Magenta, chosenWorkspace, color.Reset)
 	}
 
 	if option == "conn" {
-		if _, ok := c.clientComputers.Ips[option]; !ok {
+		if _, ok := c.serv.ClientComputers.Ips[option]; !ok {
 			return "", nil, fmt.Errorf(color.Bold + color.Red + "\tClient does not exist. Use `show clients`to view available clients" + color.Reset)
 		}
-		conn := c.clientComputers.Ips[chosenWorkspace]
+		conn := c.serv.ClientComputers.Ips[chosenWorkspace]
 
 		returnedWorkspace = workspace.InitWorkspace(chosenWorkspace)
 		conn.Workspace = returnedWorkspace
 		c.Workspace = true
+
+		// Add commands related to connection workspace
+		conn.Workspace.AddCommand("listen", func(s ...string) {
+			fmt.Println("Listening...")
+		})
+
 		fmt.Printf("\t%s%sYOU ARE NOW USING %s's WORKSPACE%s\n", color.Bold, color.Magenta, chosenWorkspace, color.Reset)
 	}
 	return chosenWorkspace, returnedWorkspace, nil
 }
 
-func ShowHandler(opts []string) {
+func (c *ControlCenter) ShowHandler(opts []string) {
+	if len(opts) != 1 {
+		fmt.Println(color.Bold + color.Red + "\tNot enough options given. Please input what to show (eg: clients, conns...)" + color.Reset)
+		return
+	}
 	for _, opt := range opts {
-		if opt != "clients" {
+		if opt != "clients" && opt != "conns" {
 			fmt.Println(color.Bold + color.Red + "\tInvalid optional argument. Please use clients or packcages." + color.Reset)
 			return
 		}
 	}
-	// Show clients in a table of this format:
-	// ID | Client Name | MORE LATER
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"#", "Client Name"})
-	idx := 0
-	for clientName := range clients {
-		t.AppendSeparator()
-		t.AppendRow([]interface{}{idx, clientName})
-		idx++
+
+	opt := opts[0]
+	if opt == "clients" {
+		// Show clients in a table of this format:
+		// ID | Client Name | MORE LATER
+		t := table.NewWriter()
+		t.SetOutputMirror(os.Stdout)
+		t.AppendHeader(table.Row{"#", "Client Name"})
+		idx := 0
+		for clientName := range clients {
+			t.AppendSeparator()
+			t.AppendRow([]interface{}{idx, clientName})
+			idx++
+		}
+		t.SetStyle(table.StyleBold)
+		t.Render()
+	} else if opt == "conns" {
+		// Show conns in a table of this format:
+		// ID | IP | MORE LATER
+		t := table.NewWriter()
+		t.SetOutputMirror(os.Stdout)
+		t.AppendHeader(table.Row{"#", "Client Name"})
+		idx := 0
+		for ip := range c.serv.ClientComputers.Ips {
+			t.AppendSeparator()
+			t.AppendRow([]interface{}{idx, ip})
+			idx++
+		}
+		t.SetStyle(table.StyleBold)
+		t.Render()	
 	}
-	t.SetStyle(table.StyleBold)
-	t.Render()
 }
 
 // create client:
