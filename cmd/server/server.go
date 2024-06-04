@@ -15,6 +15,7 @@ import (
 type Server struct {
 	addr string
 	port int
+	ClientComputers  client.ClientComputers
 }
 
 func NewServer(addr string, port int) *Server {
@@ -40,17 +41,18 @@ func (s *Server) Run() error {
 		if err != nil {
 			fmt.Println(err)
 		}
-		go handleConn(conn)
+		go s.handleConn(conn)
 	}
 }
 
-func handleConn(conn net.Conn) {
+func (s *Server) handleConn(conn net.Conn) {
 	defer conn.Close()
 	// Listen for input from the client
 	// Receive updates from client
 	// if the client is in the foreground position, output to shell and log
 	// if client is in background position, log/save.
 	client := client.NewClientComputer(conn, conn.RemoteAddr().String())
+	s.ClientComputers.Add(client)
 	fmt.Println("A client has successfully connected: ", client.Ip)
 	input := bufio.NewScanner(client.Conn)
 	for input.Scan() {
