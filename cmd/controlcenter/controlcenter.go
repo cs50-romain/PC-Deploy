@@ -22,7 +22,7 @@ type ControlCenter struct {
 	Commands	 map[string]func()
 	Workspace	 bool
 	clients		 map[string]*Client
-	clientComputers  client.ClientComputers
+	serv		 *server.Server
 	currentWorkspaceName string // either <clientName> or <ip address>
 	currentWorkspace *workspace.Workspace
 }
@@ -40,7 +40,7 @@ func (c *ControlCenter) Start() error {
 				// Check client commands and its handler
 				return nil
 			}
-			ShowHandler(s)
+			c.ShowHandler(s)
 			return nil
 		},
 	})
@@ -50,6 +50,8 @@ func (c *ControlCenter) Start() error {
 		Help: "Start the server",
 		Handler: func (s ...string) error {
 			ser := server.NewServer("192.168.5.202", 6969)
+			c.serv = ser
+			c.serv.ClientComputers.Ips = make(map[string]*client.ClientComputer)
 			go func() {
 				err := ser.Run()
 				if err != nil {
