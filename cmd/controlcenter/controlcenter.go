@@ -16,7 +16,6 @@ import (
 )
 
 var clients = make(map[string]*Client)
-var clientComputers = client.ClientComputers{}
 
 type ControlCenter struct {
 	Commands	 map[string]func()
@@ -36,10 +35,12 @@ func (c *ControlCenter) Start() error {
 		Name: "show",
 		Help: "list things, usually whatever comes after list: list clients",
 		Handler: func (s ...string) error {
+			/*
 			if c.InWorkspace() {
 				// Check client commands and its handler
 				return nil
 			}
+			*/
 			c.ShowHandler(s)
 			return nil
 		},
@@ -134,6 +135,20 @@ func (c *ControlCenter) Start() error {
 			sh.SetPromptColor(color.Cyan)
 			sh.SetPrompt(prompt + color.White + "> " + color.Reset)
 			sh.SetPromptColor(color.Cyan)
+			return nil
+		},
+	})
+
+	sh.AddCommand("kill", &tourdego.Cmd{
+		Name: "kill",
+		Help: "kill connection",
+		Handler: func (s ...string) error {
+			if c.InWorkspace() {
+				// Check workspace commands and its handler
+				c.currentWorkspace.HandleCommands("kill", s...)
+				return nil
+			}
+			
 			return nil
 		},
 	})
