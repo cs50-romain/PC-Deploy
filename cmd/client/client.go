@@ -4,6 +4,7 @@ import (
 	"cs50-romain/pcdeploy/cmd/controlcenter/workspace"
 	"net"
 	"regexp"
+	"strings"
 )
 
 type ClientComputer struct {
@@ -41,10 +42,13 @@ func (c *ClientComputers) Remove(client ClientComputer) {
 			c.Conns = append(c.Conns[:i], c.Conns[i+1:]...)	
 		}
 	}
+
+	delete(c.Ips, client.Ip)
 }
 
 func (c *ClientComputers) Add(client *ClientComputer) {
-	c.Ips[client.Ip] = client
+	ip := strings.Split(client.Ip, ":")
+	c.Ips[ip[0]] = client
 	c.Conns = append(c.Conns, client)
 }
 
