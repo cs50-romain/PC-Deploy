@@ -44,8 +44,9 @@ func (c *ControlCenter) SelectHandler(opts []string) (string, *workspace.Workspa
 	}
 
 	if option == "conn" {
-		if _, ok := c.serv.ClientComputers.Ips[option]; !ok {
-			return "", nil, fmt.Errorf(color.Bold + color.Red + "\tClient does not exist. Use `show clients`to view available clients" + color.Reset)
+		fmt.Println(c.serv.ClientComputers.Ips)
+		if _, ok := c.serv.ClientComputers.Ips[chosenWorkspace]; !ok {
+			return "", nil, fmt.Errorf(color.Bold + color.Red + "\tConn does not exist. Use `show conns` to view active connections" + color.Reset)
 		}
 		conn := c.serv.ClientComputers.Ips[chosenWorkspace]
 
@@ -56,6 +57,13 @@ func (c *ControlCenter) SelectHandler(opts []string) (string, *workspace.Workspa
 		// Add commands related to connection workspace
 		conn.Workspace.AddCommand("listen", func(s ...string) {
 			fmt.Println("Listening...")
+		})
+
+		conn.Workspace.AddCommand("kill", func(s ...string) {
+			// remove conn from ClientComputers
+			fmt.Println("killing connection")
+			c.serv.ClientComputers.Remove(*conn)
+			// Send channel command to handleConn to kill connection
 		})
 
 		fmt.Printf("\t%s%sYOU ARE NOW USING %s's WORKSPACE%s\n", color.Bold, color.Magenta, chosenWorkspace, color.Reset)
