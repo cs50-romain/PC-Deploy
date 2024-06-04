@@ -11,43 +11,45 @@ import (
 	table "github.com/jedib0t/go-pretty/v6/table"
 )
 
-func (c *ControlCenter) SelectHandler(opts []string) (string, error) {
+func (c *ControlCenter) SelectHandler(opts []string) (string, *workspace.Workspace, error) {
 	if len(opts) <= 1 {
-		return "", fmt.Errorf(color.Bold + color.Red + "\tNot enough options given" + color.Reset)
+		return "", nil, fmt.Errorf(color.Bold + color.Red + "\tNot enough options given" + color.Reset)
 	}
 	
 	if len(opts) > 2 {
-		return "", fmt.Errorf(color.Bold + color.Red + "\tToo many options given" + color.Reset)
+		return "", nil, fmt.Errorf(color.Bold + color.Red + "\tToo many options given" + color.Reset)
 	}
 	
 	// Is it a client or is it a connections
+	// Setup workspace either way
 	option := opts[0]
+	chosenWorkspace := opts[1]
+	var returnedWorkspace *workspace.Workspace
 	if option == "client" {
-		inputClient := opts[1]
-		if _, ok := clients[inputClient]; !ok {
-			return "", fmt.Errorf(color.Bold + color.Red + "\tClient does not exist. Use `show clients`to view available clients" + color.Reset)
+		if _, ok := clients[chosenWorkspace]; !ok {
+			return "", nil, fmt.Errorf(color.Bold + color.Red + "\tClient does not exist. Use `show clients`to view available clients" + color.Reset)
 		}
-		client := clients[inputClient]
+		client := clients[chosenWorkspace]
 
-		workspace := workspace.InitWorkspace(inputClient)
-		client.Workspace = workspace
+		returnedWorkspace = workspace.InitWorkspace(chosenWorkspace)
+		client.Workspace = returnedWorkspace
 		c.Workspace = true
 
-		fmt.Printf("\t%s%sYOU ARE NOW USING %s's WORKSPACE%s\n", color.Bold, color.Magenta, inputClient, color.Reset)
-		return inputClient, nil
+		fmt.Printf("\t%s%sYOU ARE NOW USING %s's WORKSPACE%s\n", color.Bold, color.Magenta, chosenWorkspace, color.Reset)
 	}
 
 	if option == "conn" {
-		if _, ok := clientComputers.Ips[option]; !ok {
-			return "", fmt.Errorf(color.Bold + color.Red + "\tClient does not exist. Use `show clients`to view available clients" + color.Reset)
+		if _, ok := c.clientComputers.Ips[option]; !ok {
+			return "", nil, fmt.Errorf(color.Bold + color.Red + "\tClient does not exist. Use `show clients`to view available clients" + color.Reset)
 		}
-		conn := clientComputers.Ips[opts[1]]
+		conn := c.clientComputers.Ips[chosenWorkspace]
 
-		workspace := workspace.InitWorkspace(opts[1])
-		conn.Workspace = workspace
+		returnedWorkspace = workspace.InitWorkspace(chosenWorkspace)
+		conn.Workspace = returnedWorkspace
 		c.Workspace = true
+		fmt.Printf("\t%s%sYOU ARE NOW USING %s's WORKSPACE%s\n", color.Bold, color.Magenta, chosenWorkspace, color.Reset)
 	}
-	return "", nil
+	return chosenWorkspace, returnedWorkspace, nil
 }
 
 func ShowHandler(opts []string) {

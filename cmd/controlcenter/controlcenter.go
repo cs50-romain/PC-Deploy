@@ -19,10 +19,12 @@ var clients = make(map[string]*Client)
 var clientComputers = client.ClientComputers{}
 
 type ControlCenter struct {
-	Commands map[string]func()
-	Workspace	bool
-	clients		map[string]*Client
-	currentClient	string
+	Commands	 map[string]func()
+	Workspace	 bool
+	clients		 map[string]*Client
+	clientComputers  client.ClientComputers
+	currentWorkspaceName string // either <clientName> or <ip address>
+	currentWorkspace *workspace.Workspace
 }
 
 func (c *ControlCenter) Start() error {
@@ -66,9 +68,14 @@ func (c *ControlCenter) Start() error {
 		Help: "create <option>; Create a client or package then answer questions.",
 		Handler: func (s ...string) error {
 			if c.InWorkspace() {
-				// Check client commands and its handler
-				fmt.Println(c.clients[c.currentClient])
-				c.clients[c.currentClient].Workspace.HandleCommands("create", s...)
+				/*OLD
+				fmt.Println(c.clients[c.currentWorkspaceName])
+				c.clients[c.currentWorkspaceName].Workspace.HandleCommands("create", s...)
+				*/
+
+
+				// Check workspace commands and its handler
+				c.currentWorkspace.HandleCommands("create", s...)
 				return nil
 			}
 			// Read user input to find out what to create.
@@ -90,19 +97,20 @@ func (c *ControlCenter) Start() error {
 		Handler: func (s ...string) error {
 			if c.InWorkspace() {
 				// Check client commands and its handler
+				c.currentWorkspace.HandleCommands("create", s...)
 				return nil
 			}
 
-			clientName, err := c.SelectHandler(s)
+			workspaceName, workspace, err := c.SelectHandler(s)
 			if err != nil {
 				fmt.Println(err)
 				return nil
 			}
 
-			c.currentClient = clientName
-			workspace := workspace.InitWorkspace(c.currentClient)
-			c.clients[c.currentClient].Workspace = workspace
-			sh.SetPrompt(color.Cyan + prompt + color.White + "\\" + color.Yellow + clientName + color.White + "> ")
+			c.currentWorkspaceName = workspaceName 
+			c.currentWorkspace = workspace
+			//c.clients[c.currentWorkspaceName].Workspace = workspace
+			sh.SetPrompt(color.Cyan + prompt + color.White + "\\" + color.Yellow + workspaceName + color.White + "> ")
 			return nil
 		},
 	})
