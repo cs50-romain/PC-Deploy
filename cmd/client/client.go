@@ -44,6 +44,7 @@ func (c *ClientComputers) Remove(client ClientComputer) {
 }
 
 func (c *ClientComputers) Add(client *ClientComputer) {
+	c.Ips[client.Ip] = client
 	c.Conns = append(c.Conns, client)
 }
 
