@@ -14,6 +14,7 @@ type ClientComputer struct {
 	Logs	[]string
 	Workspace *workspace.Workspace
 	Rcv	<-chan string
+	Quit	chan bool
 }
 
 type ClientComputers struct {
@@ -28,6 +29,7 @@ func NewClientComputer(conn net.Conn, ip string) *ClientComputer {
 		Status: true,
 		Logs: []string{},
 		Rcv: make(<-chan string),
+		Quit: make(chan bool),
 	}
 }
 
@@ -37,8 +39,9 @@ func (c *ClientComputer) SaveLogs(log string) {
 
 func (c *ClientComputers) Remove(client ClientComputer) {
 	// Remove client from the array
-	for i, conns := range c.Conns {
-		if client.Ip == conns.Ip {
+	for i, conn := range c.Conns {
+		if client.Ip == conn.Ip {
+			conn.Quit <- true
 			c.Conns = append(c.Conns[:i], c.Conns[i+1:]...)	
 		}
 	}

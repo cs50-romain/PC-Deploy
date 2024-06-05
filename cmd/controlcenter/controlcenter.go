@@ -50,7 +50,7 @@ func (c *ControlCenter) Start() error {
 		Name: "server",
 		Help: "Start the server",
 		Handler: func (s ...string) error {
-			ser := server.NewServer("192.168.5.202", 6969)
+			ser := server.NewServer("192.168.6.84", 6969)
 			c.serv = ser
 			c.serv.ClientComputers.Ips = make(map[string]*client.ClientComputer)
 			go func() {

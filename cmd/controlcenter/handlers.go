@@ -60,10 +60,7 @@ func (c *ControlCenter) SelectHandler(opts []string) (string, *workspace.Workspa
 		})
 
 		conn.Workspace.AddCommand("kill", func(s ...string) {
-			// remove conn from ClientComputers
-			fmt.Println("killing connection")
 			c.serv.ClientComputers.Remove(*conn)
-			// Send channel command to handleConn to kill connection
 		})
 
 		fmt.Printf("\t%s%sYOU ARE NOW USING %s's WORKSPACE%s\n", color.Bold, color.Magenta, chosenWorkspace, color.Reset)

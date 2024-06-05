@@ -56,8 +56,15 @@ func (s *Server) handleConn(conn net.Conn) {
 	fmt.Println("A client has successfully connected: ", client.Ip)
 	input := bufio.NewScanner(client.Conn)
 	for input.Scan() {
-		message := input.Text()
-		fmt.Println(client.Ip + ": " + message)
-		client.SaveLogs(message)
+		select {
+		case <-client.Quit:
+			fmt.Println("Closing connection")
+			return
+		default:
+			conn.Write([]byte{'d'})
+			message := input.Text()
+			fmt.Println(client.Ip + ": " + message)
+			client.SaveLogs(message)
+		}
 	}
 }
