@@ -58,8 +58,9 @@ func (c *ControlCenter) Start() error {
 				if err != nil {
 					fmt.Println(err)
 				}
+				fmt.Println("Stopped server")
 			}()
-
+			
 			return nil
 		},
 	})
@@ -122,10 +123,12 @@ func (c *ControlCenter) Start() error {
 		Name: "back",
 		Help: "back; Back out of current selection",
 		Handler: func (s ...string) error {
-			if c.InWorkspace() {
+			if !c.InWorkspace() {
+				fmt.Println("Not in a workspace ", c.Workspace)
 				// Check client commands and its handler
 				return nil
 			}
+
 			err := c.backHandler(s)
 			if err != nil {
 				fmt.Println(err)
