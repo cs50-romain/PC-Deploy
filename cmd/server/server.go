@@ -15,7 +15,8 @@ import (
 type Server struct {
 	addr string
 	port int
-	ClientComputers  client.ClientComputers
+	ClientComputers client.ClientComputers
+	Quit chan bool
 }
 
 func NewServer(addr string, port int) *Server {
@@ -34,15 +35,30 @@ func (s *Server) Run() error {
 	if err != nil {
 		return err
 	}
+	defer ln.Close()
 
 	fmt.Println("Starting server")
 	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			fmt.Println(err)
+		select {
+		case <-s.Quit:
+			fmt.Println("Quitting server")
+			// Clean up
+			return s.stop()
+		default:
+			conn, err := ln.Accept()
+			if err != nil {
+				fmt.Println(err)
+			}
+			go s.handleConn(conn)
 		}
-		go s.handleConn(conn)
 	}
+}
+
+func (s *Server) stop() error {
+	for _, client := range s.ClientComputers.Conns {
+		s.ClientComputers.Remove(*client)
+	}
+	return nil
 }
 
 func (s *Server) handleConn(conn net.Conn) {

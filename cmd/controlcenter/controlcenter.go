@@ -10,6 +10,7 @@ import (
 	"cs50-romain/pcdeploy/cmd/controlcenter/workspace"
 	"cs50-romain/pcdeploy/cmd/server"
 	"fmt"
+	"net"
 
 	tourdego "github.com/cs50-romain/tourdego/pkg"
 	"github.com/cs50-romain/tourdego/pkg/color"
@@ -50,17 +51,24 @@ func (c *ControlCenter) Start() error {
 		Name: "server",
 		Help: "Start the server",
 		Handler: func (s ...string) error {
-			ser := server.NewServer("192.168.6.84", 6969)
-			c.serv = ser
-			c.serv.ClientComputers.Ips = make(map[string]*client.ClientComputer)
-			go func() {
-				err := ser.Run()
-				if err != nil {
-					fmt.Println(err)
+			if len(s) == 1 {
+				if s[0] == "stop" {
+					c.serv.Quit <- true	
+					return nil
 				}
-				fmt.Println("Stopped server")
-			}()
-			
+			} else {
+				// CHECK IF SERVER ALREADY EXISTS 
+				go func() {
+					ser := server.NewServer("192.168.6.84", 6969)
+					c.serv = ser
+					c.serv.ClientComputers.Ips = make(map[string]*client.ClientComputer)
+					err := ser.Run()
+					if err != nil {
+						fmt.Println(err)
+					}
+				}()
+			}
+
 			return nil
 		},
 	})
@@ -72,12 +80,6 @@ func (c *ControlCenter) Start() error {
 		Help: "create <option>; Create a client or package then answer questions.",
 		Handler: func (s ...string) error {
 			if c.InWorkspace() {
-				/*OLD
-				fmt.Println(c.clients[c.currentWorkspaceName])
-				c.clients[c.currentWorkspaceName].Workspace.HandleCommands("create", s...)
-				*/
-
-
 				// Check workspace commands and its handler
 				c.currentWorkspace.HandleCommands("create", s...)
 				return nil
@@ -175,4 +177,15 @@ func (c *ControlCenter) Start() error {
 
 func (c *ControlCenter) InWorkspace() bool {
 	return c.Workspace
+}
+
+func getServerIP() string {
+	conn, err := net.Dial("udp", "8.8.8.8")
+	if err != nil {
+		fmt.Println("Unable to get server ip")
+		return ""
+	}
+	defer conn.Close()
+
+	return conn.LocalAddr().(*net.UDPAddr).IP.String()
 }
