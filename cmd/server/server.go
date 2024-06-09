@@ -16,13 +16,14 @@ type Server struct {
 	addr string
 	port int
 	ClientComputers client.ClientComputers
-	Quit chan bool
+	Quit chan interface{} 
 }
 
 func NewServer(addr string, port int) *Server {
 	return &Server{
 		addr: addr,
 		port: port,
+		Quit: make(chan interface{}),
 	}
 }
 
@@ -39,25 +40,32 @@ func (s *Server) Run() error {
 
 	fmt.Println("Starting server")
 	for {
-		select {
-		case <-s.Quit:
-			fmt.Println("Quitting server")
-			// Clean up
-			return s.stop()
-		default:
-			conn, err := ln.Accept()
-			if err != nil {
+
+		// Clean up
+		//return s.stop()
+		conn, err := ln.Accept()
+		if err != nil {
+			select {
+			case <-s.Quit:
+				fmt.Println("Quitting server")
+				ln.Close()
+				return nil
+			default:
 				fmt.Println(err)
 			}
+		} else {
 			go s.handleConn(conn)
 		}
 	}
 }
 
-func (s *Server) stop() error {
+func (s *Server) Stop() error {
 	for _, client := range s.ClientComputers.Conns {
 		s.ClientComputers.Remove(*client)
+		close(client.Quit)
+		client.Conn.Close()
 	}
+	close(s.Quit)
 	return nil
 }
 
@@ -82,5 +90,14 @@ func (s *Server) handleConn(conn net.Conn) {
 			fmt.Println(client.Ip + ": " + message)
 			client.SaveLogs(message)
 		}
+	}
+}
+
+func (s *Server) cancelled() bool {
+	select {
+	case <-s.Quit:
+		return true
+	default:
+		return false
 	}
 }

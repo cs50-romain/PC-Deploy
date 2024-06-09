@@ -53,13 +53,13 @@ func (c *ControlCenter) Start() error {
 		Handler: func (s ...string) error {
 			if len(s) == 1 {
 				if s[0] == "stop" {
-					c.serv.Quit <- true	
-					return nil
+					fmt.Println("Received command to stop server")
+					c.serv.Stop()
 				}
 			} else {
 				// CHECK IF SERVER ALREADY EXISTS 
 				go func() {
-					ser := server.NewServer("192.168.6.84", 6969)
+					ser := server.NewServer("192.168.6.96", 6969)
 					c.serv = ser
 					c.serv.ClientComputers.Ips = make(map[string]*client.ClientComputer)
 					err := ser.Run()
