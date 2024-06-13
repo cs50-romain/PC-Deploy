@@ -87,7 +87,9 @@ func (s *Server) handleConn(conn net.Conn) {
 		default:
 			conn.Write([]byte{'d'})
 			message := input.Text()
-			fmt.Println(client.Ip + ": " + message)
+			if client.IsForeground() {
+				fmt.Println(client.Ip + ": " + message)
+			}
 			client.SaveLogs(message)
 		}
 	}
