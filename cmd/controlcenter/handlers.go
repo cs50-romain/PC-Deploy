@@ -53,6 +53,7 @@ func (c *ControlCenter) SelectHandler(opts []string) (string, *workspace.Workspa
 		returnedWorkspace = workspace.InitWorkspace(chosenWorkspace)
 		conn.Workspace = returnedWorkspace
 		c.Workspace = true
+		conn.ToForeground()
 
 		// Add commands related to connection workspace
 		conn.Workspace.AddCommand("listen", func(s ...string) {
