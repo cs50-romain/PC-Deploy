@@ -59,7 +59,7 @@ func (c *ControlCenter) Start() error {
 			} else {
 				// CHECK IF SERVER ALREADY EXISTS 
 				go func() {
-					ser := server.NewServer("192.168.6.96", 6969)
+					ser := server.NewServer("192.168.6.112", 6969)
 					c.serv = ser
 					c.serv.ClientComputers.Ips = make(map[string]*client.ClientComputer)
 					err := ser.Run()
