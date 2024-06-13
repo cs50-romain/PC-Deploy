@@ -137,6 +137,8 @@ func (c *ControlCenter) Start() error {
 				return nil
 			}
 
+			c.serv.ClientComputers.AllToBackground()
+
 			sh.SetPromptColor(color.Cyan)
 			sh.SetPrompt(prompt + color.White + "> " + color.Reset)
 			sh.SetPromptColor(color.Cyan)
