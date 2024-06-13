@@ -26,7 +26,7 @@ func NewClientComputer(conn net.Conn, ip string) *ClientComputer {
 	return &ClientComputer{
 		Conn: conn,
 		Ip: ip,
-		Status: true,
+		Status: false,
 		Logs: []string{},
 		Rcv: make(<-chan string),
 		Quit: make(chan bool),
@@ -67,6 +67,10 @@ func (c *ClientComputer) ToForeground() {
 
 func (c *ClientComputer) ToBackgrounnd() {
 	c.Status = false
+}
+
+func (c *ClientComputer) IsForeground() bool {
+	return c.Status
 }
 
 func isConnection(input string) bool {
