@@ -29,7 +29,7 @@ func main() {
 	action := flag.String("action", "", "Which action to perform.")
 	portPtr := flag.String("port", "6969", "Port for server listening")
 	clientPtr := flag.String("client", "", "The work client folder, which includes the automate agent and any other exe")
-	xmlFilePtr := flag.String("xmlfile", "./deployment/autounattend.xml", "autounattend.xml file for provisioning USB")
+	xmlFilePtr := flag.String("xmlfile", "", "autounattend.xml file for provisioning USB")
 	powerPtr := flag.String("power", "0,0,0,0,0,0", "Power Settings. Format: 0,0,0,0,0,0")
 	usernamePtr := flag.String("username", "", "Local admin username")
 	passPtr := flag.String("pass", "", "Local admin password")
@@ -159,6 +159,7 @@ func handlePowerOptions(powerOptions string) error {
 	}
 
 	output := strings.Join(lines, "\n")
+	fmt.Println(output)
 	err = os.WriteFile("./deployment/setpoweroption.bat", []byte(output), 0644)
 	if err != nil {
 		fmt.Println(err)
