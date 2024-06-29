@@ -31,11 +31,11 @@ func main() {
 	clientPtr := flag.String("client", "", "The work client folder, which includes the automate agent and any other exe")
 	xmlFilePtr := flag.String("xmlfile", "", "autounattend.xml file for provisioning USB")
 	powerPtr := flag.String("power", "0,0,0,0,0,0", "Power Settings. Format: 0,0,0,0,0,0")
-	usernamePtr := flag.String("username", "", "Local admin username")
-	passPtr := flag.String("pass", "", "Local admin password")
-	computerNamePtr := flag.String("computerName", "", "Computer name")
-	timeZonePtr := flag.String("tz", "", "Provide timezone for the computer")
-	drivePtr := flag.String("drive", "./", "Drive to provision")
+	usernamePtr := flag.String("username", "admin", "Local admin username")
+	passPtr := flag.String("pass", "admin", "Local admin password")
+	computerNamePtr := flag.String("computerName", "PCNAME", "Computer name")
+	timeZonePtr := flag.String("tz", "Standard Eastern Time", "Provide timezone for the computer")
+	drivePtr := flag.String("drive", "", "Drive to provision")
 
 	flag.Parse()
 
@@ -58,7 +58,7 @@ func main() {
 }
 
 func handleAction(action string, flags Flags) error {
-	if action != "provision" && action != "create-xml" && action != "server" {
+	if action != "provision" && action != "createxml" && action != "server" {
 		return fmt.Errorf("Action is not correct. Please choose either provision, create-xml, or server.")
 	}
 
@@ -66,7 +66,7 @@ func handleAction(action string, flags Flags) error {
 		return handleProvision(flags.client, flags.drive, flags.xmlFile, flags)
 	}
 
-	if action == "create-xml" {
+	if action == "createxml" {
 		return handleXml(flags)
 	}
 
@@ -92,7 +92,7 @@ func handleProvision(client string, drive string, xmlFile string, flags Flags) e
 	// Copy client folder, xml file to the drive specified
 	clientPath := strings.TrimLeft(client, ".")
 	os.MkdirAll(drive + clientPath, 0750)
-	copyDirs(client, drive + clientPath)
+	copyDirs(client, drive + clientPath, drive)
 
 	copyFile(xmlFile, drive + "/autounattend.xml")
 	handlePowerOptions(flags.power)
@@ -101,6 +101,10 @@ func handleProvision(client string, drive string, xmlFile string, flags Flags) e
 }
 
 func handleXml(flags Flags) error {
+	if flags.drive == "" {
+		return fmt.Errorf("Drive cannot be nil")
+	}
+
 	xmlPackage := NewPackage(flags.computerName, flags.timezone)
 	xmlPackage.SetLocalAdmin(flags.username, flags.password)
 
@@ -133,7 +137,6 @@ func handlePowerOptions(powerOptions string) error {
 	standbyTimeoutAC, standbyTimeoutDC := powerOptionsSplit[2], powerOptionsSplit[3]
 	hibernateTimeoutAC, hibernateTimeoutDC := powerOptionsSplit[4], powerOptionsSplit[5]
 
-	fmt.Println("Made it here")
 	powerFile, err := os.ReadFile("./deployment/setpoweroption.bat")
 	if err != nil {
 		fmt.Println(err)
@@ -169,10 +172,11 @@ func handlePowerOptions(powerOptions string) error {
 }
 
 func handleServer(flags ...string) error {
+	fmt.Println("Server not available yet")
 	return nil
 }
 
-func copyDirs(sourceDirPath, destDirPath string) error {
+func copyDirs(sourceDirPath, destDirPath, drivePath string) error {
 	entries, err := os.ReadDir(sourceDirPath)
 	if err != nil {
 		fmt.Println(err)
@@ -183,9 +187,13 @@ func copyDirs(sourceDirPath, destDirPath string) error {
 		entryPath := sourceDirPath + "/" + entry.Name()
 		if entry.IsDir() {
 			os.MkdirAll(destDirPath + "/" + entry.Name(), 0750)
-			go copyDirs(entryPath, destDirPath + "/" + entry.Name())
+			go copyDirs(entryPath, destDirPath + "/" + entry.Name(), drivePath)
 		} else {
-			copyFile(entryPath, destDirPath + "/" + entry.Name())
+			if entry.Name() == "autounattend.xml" {
+				copyFile(entryPath, drivePath + "/" + entry.Name())
+			} else {
+				copyFile(entryPath, destDirPath + "/" + entry.Name())
+			}
 		}
 	}
 	return nil
